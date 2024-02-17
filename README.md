@@ -3,23 +3,23 @@ Cloud Diagrams with python diagrams library
 
 ## How to start
 
-### Install graphviz
+### Install graphviz (Mac)
 
 ```bash
-	brew install graphviz  
+brew install graphviz  
 ```
 
 ### Setup python
 
 ```bash
-	pipenv shell
-	pipenv install
+pipenv shell
+pipenv install
 ```
 
 ## Generate the diagrams
 
 ```bash
-	python FILENAME.py
+python FILENAME.py
 ```
 
 ## Example
