@@ -1,4 +1,4 @@
-from diagrams import Diagram, Cluster
+from diagrams import Diagram, Cluster, Edge
 from diagrams.aws.compute import Lambda
 from diagrams.aws.database import RDS
 from diagrams.aws.network import APIGateway, NATGateway
@@ -16,7 +16,7 @@ node_attr = {
 }
 
 # The order of rendered diagrams is the reverse of the declaration order.
-with Diagram("DB access diagram", show=True, outformat="png", direction="LR", graph_attr=graph_attr, node_attr=node_attr):
+with Diagram("DB access diagram", filename="dbaccess", show=True, outformat="png", direction="LR", graph_attr=graph_attr, node_attr=node_attr):
     with Cluster("VPC"):
         with Cluster("Private Subnet"):
             db = RDS("database")
@@ -30,5 +30,6 @@ with Diagram("DB access diagram", show=True, outformat="png", direction="LR", gr
     api = APIGateway("api gateway")
     sm = SecretsManager("secrets manager")
 
-    api - handler - db
-    handler - nat - sm
+    api - Edge(color="black") - handler - \
+        Edge(color="black") - Edge(color="black") - db
+    handler - Edge(color="black") - nat - Edge(color="black") - sm

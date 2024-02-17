@@ -1,11 +1,21 @@
-from diagrams import Diagram, Cluster
+# https://diagrams.mingrammer.com/docs/guides/diagram
+from diagrams import Diagram, Cluster, Edge
+
+from diagrams.onprem.queue import Kafka
+from diagrams.onprem.network import Nginx
+from diagrams.onprem.monitoring import Grafana, Prometheus
+from diagrams.onprem.aggregator import Fluentd
+from diagrams.onprem.inmemory import Redis
+from diagrams.onprem.database import PostgreSQL
+from diagrams.onprem.compute import Server
+from diagrams.onprem.analytics import Spark
 from diagrams.aws.compute import EC2, Lambda, EKS, ECS
 from diagrams.aws.database import RDS
-from diagrams.aws.network import VPC, APIGateway, ELB, NATGateway
-from diagrams.aws.security import SecretsManager
+from diagrams.aws.network import APIGateway, ELB
 from diagrams.aws.storage import S3
 from diagrams.aws.integration import SQS
 from diagrams.aws.analytics import Redshift
+
 
 # https://www.graphviz.org/doc/info/attrs.html
 graph_attr = {
@@ -49,3 +59,46 @@ with Diagram("Example", show=True, outformat="png", direction="LR", graph_attr=g
     source >> workers >> queue >> handlers
     handlers >> store
     handlers >> dw
+
+    # Edges with labels, colors, and styles
+    ingress = Nginx("ingress")
+
+    metrics = Prometheus("metric")
+    metrics << Edge(color="firebrick", style="dashed") << Grafana("monitoring")
+
+    with Cluster("Service Cluster"):
+        grpcsvc = [
+            Server("grpc1"),
+            Server("grpc2"),
+            Server("grpc3")]
+
+    with Cluster("Sessions HA"):
+        primary = Redis("session")
+        primary \
+            - Edge(color="brown", style="dashed") \
+            - Redis("replica") \
+            << Edge(label="collect") \
+            << metrics
+        grpcsvc >> Edge(color="brown") >> primary
+
+    with Cluster("Database HA"):
+        primary = PostgreSQL("users")
+        primary \
+            - Edge(color="brown", style="dotted") \
+            - PostgreSQL("replica") \
+            << Edge(label="collect") \
+            << metrics
+        grpcsvc >> Edge(color="black") >> primary
+
+    aggregator = Fluentd("logging")
+    aggregator \
+        >> Edge(label="parse") \
+        >> Kafka("stream") \
+        >> Edge(color="black", style="bold") \
+        >> Spark("analytics")
+
+    ingress \
+        >> Edge(color="darkgreen") \
+        << grpcsvc \
+        >> Edge(color="darkorange") \
+        >> aggregator
