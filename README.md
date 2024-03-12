@@ -1,7 +1,7 @@
 # AWSDiagrams
-Cloud Diagrams with python diagrams library 
+Cloud Diagrams with python diagrams library
 
-## How to start
+## How to start - Diagrams py
 
 ### Install graphviz (Mac)
 
